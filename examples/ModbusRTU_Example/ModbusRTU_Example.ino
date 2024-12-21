@@ -1,6 +1,6 @@
 #include "ModbusRTU.h"
 
-ModbusRTU::ModbusRTUSlave<16> slave;
+ModbusRTU::ModbusRTUClient<16> client;
 
 unsigned short encoder = 0;
 unsigned short analogOut[3];
@@ -10,7 +10,7 @@ unsigned short analogIn[2];
 
 void setup()
 {
-  slave.begin(115200);
+  client.begin(115200);
 
   pinMode(A0, INPUT_PULLUP);
   pinMode(A1, INPUT_PULLUP);
@@ -21,7 +21,7 @@ void setup()
   pinMode(A6, INPUT_PULLUP);
   pinMode(A7, INPUT_PULLUP);
   
-  slave.update();
+  client.update();
   
   pinMode(10, OUTPUT);
   pinMode(9, OUTPUT);
@@ -32,24 +32,24 @@ void setup()
   pinMode(11, OUTPUT);
   pinMode(7, OUTPUT);
   
-  slave.addCoil(&digitalOut[0],0x0000);
-  slave.addCoil(&digitalOut[1],0x0001);
-  slave.addCoil(&digitalOut[2],0x0002);
-  slave.addCoil(&digitalOut[3],0x0003);
+  client.addCoil(&digitalOut[0],0x0000);
+  client.addCoil(&digitalOut[1],0x0001);
+  client.addCoil(&digitalOut[2],0x0002);
+  client.addCoil(&digitalOut[3],0x0003);
 
-  slave.addDiscreteInput(&digitalIn[0], 0x1000);
-  slave.addDiscreteInput(&digitalIn[1], 0x1001);
-  slave.addDiscreteInput(&digitalIn[2], 0x1002);
-  slave.addDiscreteInput(&digitalIn[3], 0x1003);
-  slave.addDiscreteInput(&digitalIn[4], 0x1004);
-  slave.addDiscreteInput(&digitalIn[5], 0x1005);
+  client.addDiscreteInput(&digitalIn[0], 0x1000);
+  client.addDiscreteInput(&digitalIn[1], 0x1001);
+  client.addDiscreteInput(&digitalIn[2], 0x1002);
+  client.addDiscreteInput(&digitalIn[3], 0x1003);
+  client.addDiscreteInput(&digitalIn[4], 0x1004);
+  client.addDiscreteInput(&digitalIn[5], 0x1005);
 
-  slave.addInputRegister(&analogIn[0], 0x2000);
-  slave.addInputRegister(&analogIn[1], 0x2001);
+  client.addInputRegister(&analogIn[0], 0x2000);
+  client.addInputRegister(&analogIn[1], 0x2001);
 
-  slave.addHoldingRegister(&analogOut[0], 0x3000);
-  slave.addHoldingRegister(&analogOut[1], 0x3001);
-  slave.addHoldingRegister(&analogOut[2], 0x3002);
+  client.addHoldingRegister(&analogOut[0], 0x3000);
+  client.addHoldingRegister(&analogOut[1], 0x3001);
+  client.addHoldingRegister(&analogOut[2], 0x3002);
 }
 
 void loop() 
@@ -64,7 +64,7 @@ void loop()
   analogIn[0] = analogRead(A7);
   analogIn[1] = analogRead(A6);
   
-  slave.update();
+  client.update();
   
   analogWrite(10, analogOut[0]);
   analogWrite(9, analogOut[1]);
