@@ -1,10 +1,14 @@
 # About
-The ModbusRTU library is a **simple** to use library that allows an arduino to act as a Modbus slave. It attempts to obscure all unnecessary parts of the protocol to provide a clean interface.
+The ModbusRTU library is a **simple** to use library that allows an arduino to act as a Modbus client. It attempts to obscure all unnecessary parts of the protocol to provide a clean interface.
 
 The library pre-allocates all necessary memory upon instantiation, which improves the performance of the library and allows for simpler diagnostics. 
 
 # Support
-Slave ID's are supported, it is therefore possible to have multiple slaves on the same bus.
+Client ID's are supported, it is therefore possible to have multiple client on the same bus.
+
+# Fixed
+1. The bug fixed by working with writeSingleCoil function.
+2. The name "slave" was change on the name "client"
 
 ### Entities
 * Discrete Inputs
@@ -31,24 +35,24 @@ Slave ID's are supported, it is therefore possible to have multiple slaves on th
 # Documentation
 Whole libary is enclosed in a namespace called ModbusRTU.
 
-## ModbusRTUSlave Class
+## ModbusRTUClient Class
 The class is a template class with one parameter called registerCount. The parameter specifies the size of the register array or maximum register count.
 
 ### Members
 ```c++ 
-   void begin(unsigned long baud, HardwareSerial *pHardwareSerial = &Serial, unsigned char slaveId = 1)
+   void begin(unsigned long baud, HardwareSerial *pHardwareSerial = &Serial, unsigned char clientId = 1)
 ```
    The begin function sets up variables and configures the hardware serial class.
    * Parameters
       * baud: The baud rate the serial interface should run at.
       * pHardwareSerial: Pointer to a HardwareSerial instance. Defaults to &Serial.
-      * slaveId: Slave ID to be used by this slave. Defaults to 1.
+      * clientId: Client ID to be used by this client. Defaults to 1.
 
 
 ```c++
    void update()
 ```
-   The function checks for incoming frames from master, attempts to parse the frame upon receiving, thereafter returns the result to the master. The parsing includes reading/writing to the modbus entites. If parsing a frame fails, the slave will attempt to send an exception.
+   The function checks for incoming frames from server, attempts to parse the frame upon receiving, thereafter returns the result to the server. The parsing includes reading/writing to the modbus entites. If parsing a frame fails, the client will attempt to send an exception.
 
 
 ```c++

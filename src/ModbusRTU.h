@@ -42,7 +42,7 @@ namespace ModbusRTU
 	};
 
 	template <uint16_t registerCount>
-	class ModbusRTUSlave
+	class ModbusRTUClient
 	{
 
 		enum FunctionCode : uint8_t
@@ -66,7 +66,7 @@ namespace ModbusRTU
 		};
 
 		HardwareSerial *m_pHardwareSerial;
-		uint8_t m_SlaveID;
+		uint8_t m_ClientID;
 		ModbusRegister m_RegisterArray[registerCount];
 		uint16_t m_AssignedRegisters;
 		uint32_t m_BaudRate;
@@ -83,12 +83,12 @@ namespace ModbusRTU
 			return (crc16(frame, frameLength - 2) != *(short*)&frame[frameLength - 2]);
 		}
 
-		//Sends exception to master
+		//Sends exception to server
 		//Uses last received frame as function code
 		//
 		void throwException(ExceptionCode exceptionCode)
 		{
-			m_OutputFrame[0] = m_SlaveID;
+			m_OutputFrame[0] = m_ClientID;
 			m_OutputFrame[1] = m_InputFrame[1] + FunctionCode::Exception;
 			m_OutputFrame[2] = exceptionCode;
 			sendFrame(m_OutputFrame, 3);
@@ -131,7 +131,7 @@ namespace ModbusRTU
 					}
 					else
 					{
-						//Throw exception and wait for master to receive it.
+						//Throw exception and wait for server to receive it.
 						throwException(ExceptionCode::IllegalFunction);
 						m_pHardwareSerial->flush();
 
@@ -144,7 +144,7 @@ namespace ModbusRTU
 			return false;
 		}
 
-		//Send response frame to master
+		//Send response frame to server
 		//This function appends a CRC16 to the end of the frame
 		//
 		void sendFrame(uint8_t *pFrame, uint8_t frameLength)
@@ -173,7 +173,7 @@ namespace ModbusRTU
 				byte dataLength = (ceil(((float)targetRegisterLength) / 8.0f));
 
 				//Write frame header
-				m_OutputFrame[0] = m_SlaveID;
+				m_OutputFrame[0] = m_ClientID;
 				m_OutputFrame[1] = frame[1];
 				m_OutputFrame[2] = dataLength;
 
@@ -200,7 +200,7 @@ namespace ModbusRTU
 					}
 				}
 
-				//Send response frame to master
+				//Send response frame to server
 				sendFrame(m_OutputFrame, 3 + dataLength);
 			}
 			else if (frame[1] == ReadDiscreteInputs)
@@ -210,7 +210,7 @@ namespace ModbusRTU
 				byte dataLength = (ceil(((float)targetRegisterLength) / 8.0f));
 
 				//Write frame header
-				m_OutputFrame[0] = m_SlaveID;
+				m_OutputFrame[0] = m_ClientID;
 				m_OutputFrame[1] = frame[1];
 				m_OutputFrame[2] = dataLength;
 
@@ -237,7 +237,7 @@ namespace ModbusRTU
 					}
 				}
 
-				//Send response frame to master
+				//Send response frame to server
 				sendFrame(m_OutputFrame, dataLength + 3);
 			}
 			else if (frame[1] == ReadMultipleHoldingRegisters)
@@ -247,7 +247,7 @@ namespace ModbusRTU
 				uint8_t dataLength = targetRegisterLength * 2;
 
 				//Write frame header
-				m_OutputFrame[0] = m_SlaveID;
+				m_OutputFrame[0] = m_ClientID;
 				m_OutputFrame[1] = frame[1];
 				m_OutputFrame[2] = dataLength;
 
@@ -270,7 +270,7 @@ namespace ModbusRTU
 					}
 				}
 
-				//Send response frame to master
+				//Send response frame to server
 				sendFrame(m_OutputFrame, dataLength + 3);
 			}
 			else if (frame[1] == ReadInputRegisters)
@@ -280,7 +280,7 @@ namespace ModbusRTU
 				byte dataLength = targetRegisterLength * 2;
 
 				//Write frame header
-				m_OutputFrame[0] = m_SlaveID;
+				m_OutputFrame[0] = m_ClientID;
 				m_OutputFrame[1] = frame[1];
 				m_OutputFrame[2] = dataLength;
 
@@ -303,7 +303,7 @@ namespace ModbusRTU
 					}
 				}
 
-				//Send response frame to master
+				//Send response frame to server
 				sendFrame(m_OutputFrame, dataLength + 3);
 			}
 			else if (frame[1] == WriteSingleCoil)
@@ -424,7 +424,7 @@ namespace ModbusRTU
 
 	public:
 
-		ModbusRTUSlave() {}
+		ModbusRTUClient() {}
 
 		//Adds coil to register list and returns register number
 		//Returns -1 when no more registers available
@@ -461,7 +461,7 @@ namespace ModbusRTU
 		//Initializes Modbus and serial data transmission
 		//
 		//
-		void begin(uint32_t baud, HardwareSerial *pHardwareSerial = &Serial, uint8_t slaveId = 1)
+		void begin(uint32_t baud, HardwareSerial *pHardwareSerial = &Serial, uint8_t clientId = 1)
 		{
 			//Clear all registers
 			for (uint16_t i = 0; i < registerCount; i++)
@@ -475,7 +475,7 @@ namespace ModbusRTU
 
 			//Initialize variables
 			m_BaudRate = baud;
-			m_SlaveID = slaveId;
+			m_ClientID = clientId;
 
 			clearInputFrame();
 
@@ -488,7 +488,7 @@ namespace ModbusRTU
 			m_pHardwareSerial->readBytes(m_InputFrame, MODBUS_MAX_FRAME_LENGTH);
 		}
 
-		//Checks for incoming frames from master
+		//Checks for incoming frames from server
 		//If frame has been received then it is parsed
 		//
 		void update()
@@ -496,8 +496,8 @@ namespace ModbusRTU
 			//Check if a new frame is available
 			if (receiveFrame())
 			{
-				//Check slave ID
-				if (m_InputFrame[0] != m_SlaveID)
+				//Check Client ID
+				if (m_InputFrame[0] != m_ClientID)
 				{
 					clearInputFrame();
 					return;
