@@ -314,7 +314,7 @@ namespace ModbusRTU
 				if (pRegister && pRegister->m_RegisterType == ModbusRegister::Coil)
 				{
 					//Write the target value to coil
-					*(bool*)pRegister->m_pData = ((*(uint16_t*)&frame[4]) == true);
+					*(bool*)pRegister->m_pData = ((*(uint16_t*)&frame[4]) & 0xFF);
 				}
 				else
 				{
