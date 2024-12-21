@@ -6,6 +6,10 @@ The library pre-allocates all necessary memory upon instantiation, which improve
 # Support
 Client ID's are supported, it is therefore possible to have multiple client on the same bus.
 
+# Fixed
+1. The bug fixed by working with writeSingleCoil function.
+2. The name "slave" was change on the name "client"
+
 ### Entities
 * Discrete Inputs
 * Coils
